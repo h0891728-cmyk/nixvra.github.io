@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nixvra — Powered by Wabcripte Web Solution</title>
+  <meta name="description" content="Expert web development, legacy redesigns, and CRM automation using Laravel, Python, and WordPress." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            primary: '#10B981', 
+            primaryDark: '#047857',
+            secondary: '#6366f1', 
+            dark: '#050505',
+            card: '#0A0A0A',
+            border: 'rgba(255,255,255,0.1)'
+          },
+          animation: {
+            'blob': 'blob 10s infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'marquee': 'marquee 30s linear infinite',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+              '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-100%)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #10B981; }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-strong {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    .text-gradient {
+        background: linear-gradient(to right, #34d399, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .modal {
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+    .modal.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content {
+        transform: scale(0.95);
+        transition: transform 0.3s ease-in-out;
+    }
+    .modal.open .modal-content {
+        transform: scale(1);
+    }
+
+    /* FAQ Transitions */
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+    }
+    .faq-item.active .faq-chevron {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+
+<body class="bg-dark text-gray-200 antialiased overflow-x-hidden relative font-sans">
+
+  <div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+      <div class="absolute bg-primary/20 w-[500px] h-[500px] rounded-full blur-[120px] top-[-100px] left-[-100px] animate-blob mix-blend-screen"></div>
+      <div class="absolute bg-indigo-900/30 w-[600px] h-[600px] rounded-full blur-[120px] bottom-[-100px] right-[-100px] animate-blob animation-delay-2000 mix-blend-screen"></div>
+  </div>
+
+  <a href="https://wa.me/917078524164" target="_blank" class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-[0_0_20px_rgba(37,211,102,0.5)] hover:scale-110 transition animate-float">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8 filter brightness-0 invert" alt="WhatsApp">
+  </a>
+
+  <nav class="fixed top-0 w-full z-40 glass border-b-0 py-4 transition-all">
+      <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+            <span class="font-bold text-xl tracking-wide text-white uppercase">Nixvra</span>
+          </div>
+          
+          <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+              <a href="#services" class="hover:text-primary transition">Services</a>
+              <a href="#why-choose" class="hover:text-primary transition">Why Us</a>
+              <a href="#faq" class="hover:text-primary transition">FAQ</a>
+              <a href="tel:+917078524164" class="px-5 py-2 rounded-lg bg-primary hover:bg-primaryDark text-dark font-bold transition">
+                  +91 7078524164
+              </a>
+          </div>
+      </div>
+  </nav>
+
+  <section class="min-h-screen flex items-center pt-24 pb-12 relative">
+    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+      <div class="z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/10 mb-6 reveal">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span class="text-xs uppercase tracking-widest text-primary font-bold">Wabcripte Web Solution Group</span>
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 reveal" style="transition-delay: 100ms;">
+          Transforming Business <br />
+          <span class="text-gradient">Through Code.</span>
+        </h1>
+
+        <p class="text-lg text-gray-400 max-w-xl mb-10 leading-relaxed reveal" style="transition-delay: 200ms;">
+            Expert full-stack **Website Redesign**, **Maintenance**, and **Custom Automation**. Stop struggling with old systems. Let us build your digital infrastructure.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 reveal" style="transition-delay: 300ms;">
+          <a href="tel:+917078524164" class="px-8 py-4 rounded-xl bg-white text-dark font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">call</span> Call +91 7078524164
+          </a>
+          <a href="#services" class="px-8 py-4 rounded-xl glass hover:bg-white/5 text-white transition flex items-center justify-center gap-2">
+            Explore Services
+          </a>
+        </div>
+      </div>
+
+      <div class="relative reveal" style="transition-delay: 400ms;" id="tilt-container">
+        <div class="absolute inset-0 bg-primary/20 blur-[90px] rounded-full animate-pulse-slow"></div>
+        <div class="relative z-10 glass-strong rounded-2xl p-1 border border-white/20 shadow-2xl transform transition-transform duration-200" id="tilt-card">
+            <div class="bg-dark rounded-xl overflow-hidden">
+                <div class="h-8 bg-[#1e1e1e] flex items-center px-3 gap-1.5 border-b border-white/5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                    <div class="ml-4 w-2/3 h-4 bg-white/5 rounded text-[10px] flex items-center px-2 text-gray-500 font-mono">nixvra.com/dashboard</div>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-4">
+                     <div class="col-span-2 p-4 rounded-lg bg-white/5 border border-white/10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="text-xs text-gray-400">Total Revenue Generated</div>
+                                <div class="text-2xl font-bold text-white mt-1">₹ 24,50,000</div>
+                            </div>
+                            <span class="material-symbols-outlined text-green-500 bg-green-500/10 p-1 rounded">trending_up</span>
+                        </div>
+                     </div>
+                     <div class="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                         <div class="text-xs text-blue-300">New Leads</div>
+                         <div class="text-xl font-bold text-white mt-1">342</div>
+                     </div>
+                     <div class="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                         <div class="text-xs text-purple-300">Automation Saved</div>
+                         <div class="text-xl font-bold text-white mt-1">120 hrs</div>
+                     </div>
+                </div>
+                <div class="bg-[#111] p-3 border-t border-white/5 font-mono text-[10px] text-gray-500">
+                    > Deploying Laravel Application... <span class="text-green-500">Done</span><br>
+                    > Python Automation Hook... <span class="text-green-500">Active</span>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="py-8 bg-black/50 border-y border-white/5 overflow-hidden">
+    <div class="flex w-[200%] animate-marquee">
+        <div class="flex items-center gap-12 px-8 text-gray-500 font-mono text-sm uppercase tracking-widest whitespace-nowrap">
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-original.svg" class="w-5"/> Laravel</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" class="w-5"/> Python</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-plain.svg" class="w-5 invert"/> WordPress</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" class="w-5"/> React JS</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" class="w-5"/> MySQL</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-original.svg" class="w-5"/> Laravel</span>
+            <span class="flex items-center gap-2"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" class="w-5"/> Python</span>
+        </div>
+    </div>
+  </div>
+
+  <section class="max-w-7xl mx-auto px-6 py-24" id="services">
+    <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4 uppercase">Core <span class="text-primary">Services</span></h2>
+        <p class="text-gray-400">Premium digital solutions tailored for your growth.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="group relative p-8 rounded-3xl bg-card border border-border hover:border-primary/50 transition duration-300 reveal">
+        <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-primary text-3xl">code</span>
+        </div>
+        <h3 class="text-2xl font-semibold mb-3 text-white">Website Redesign</h3>
+        <p class="text-gray-400 text-sm mb-6">Modernize your legacy website with latest tech like Laravel or Custom WordPress.</p>
+        <button onclick="openModal('web')" class="w-full py-3 rounded-xl border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition">View Details</button>
+      </div>
+
+      <div class="group relative p-8 rounded-3xl bg-card border border-border hover:border-purple-500/50 transition duration-300 reveal" style="transition-delay: 100ms;">
+        <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-purple-400 text-3xl">smart_toy</span>
+        </div>
+        <h3 class="text-2xl font-semibold mb-3 text-white">Business Automation</h3>
+        <p class="text-gray-400 text-sm mb-6">Automate WhatsApp replies, lead capturing, and data entry using Python.</p>
+        <button onclick="openModal('auto')" class="w-full py-3 rounded-xl border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition">View Details</button>
+      </div>
+
+      <div class="group relative p-8 rounded-3xl bg-card border border-border hover:border-blue-500/50 transition duration-300 reveal" style="transition-delay: 200ms;">
+        <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-blue-400 text-3xl">build</span>
+        </div>
+        <h3 class="text-2xl font-semibold mb-3 text-white">Maintenance & Security</h3>
+        <p class="text-gray-400 text-sm mb-6">Daily backups, virus removal, and speed optimization for peace of mind.</p>
+        <button onclick="openModal('maint')" class="w-full py-3 rounded-xl border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition">View Details</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 py-24 border-t border-white/5" id="why-choose">
+    <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4 uppercase">Why Choose <span class="text-primary">Nixvra?</span></h2>
+        <div class="w-20 h-1 bg-primary mx-auto"></div>
+    </div>
+    <div class="grid md:grid-cols-4 gap-6">
+        <div class="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all reveal">
+            <span class="material-symbols-outlined text-primary text-4xl mb-4">bolt</span>
+            <h4 class="text-xl font-bold mb-2 text-white">Rocket Speed</h4>
+            <p class="text-gray-500 text-sm">Websites optimized for < 1.5s load time and Google Core Web Vitals.</p>
+        </div>
+        <div class="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all reveal" style="transition-delay: 100ms">
+            <span class="material-symbols-outlined text-primary text-4xl mb-4">security</span>
+            <h4 class="text-xl font-bold mb-2 text-white">Enterprise Security</h4>
+            <p class="text-gray-500 text-sm">Hardened code against SQL injection, XSS, and DDoS attacks.</p>
+        </div>
+        <div class="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all reveal" style="transition-delay: 200ms">
+            <span class="material-symbols-outlined text-primary text-4xl mb-4">groups</span>
+            <h4 class="text-xl font-bold mb-2 text-white">Local Expertise</h4>
+            <p class="text-gray-500 text-sm">Indore-based engineering team with global standard output.</p>
+        </div>
+        <div class="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all reveal" style="transition-delay: 300ms">
+            <span class="material-symbols-outlined text-primary text-4xl mb-4">support_agent</span>
+            <h4 class="text-xl font-bold mb-2 text-white">24/7 Monitoring</h4>
+            <p class="text-gray-500 text-sm">Real-time uptime monitoring and emergency response support.</p>
+        </div>
+    </div>
+  </section>
+
+  <section class="max-w-4xl mx-auto px-6 py-24 border-t border-white/5" id="faq">
+    <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4 uppercase">Questions? <span class="text-primary">Answered.</span></h2>
+    </div>
+    <div class="space-y-4">
+        <div class="faq-item glass rounded-2xl p-6 cursor-pointer reveal" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center">
+                <h4 class="text-lg font-bold text-white">What technologies do you specialize in?</h4>
+                <span class="material-symbols-outlined faq-chevron transition-transform text-primary">expand_more</span>
+            </div>
+            <div class="faq-answer">
+                <p class="pt-4 text-gray-400 text-sm leading-relaxed">We specialize in Laravel (PHP), Python, React JS, and custom WordPress development. We focus on scalable, high-performance backends and clean, modern frontends.</p>
+            </div>
+        </div>
+        <div class="faq-item glass rounded-2xl p-6 cursor-pointer reveal" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center">
+                <h4 class="text-lg font-bold text-white">Do you offer post-launch support?</h4>
+                <span class="material-symbols-outlined faq-chevron transition-transform text-primary">expand_more</span>
+            </div>
+            <div class="faq-answer">
+                <p class="pt-4 text-gray-400 text-sm leading-relaxed">Yes, Wabcripte Web Solution provides Annual Maintenance Contracts (AMC) that cover daily backups, security patches, and minor updates.</p>
+            </div>
+        </div>
+        <div class="faq-item glass rounded-2xl p-6 cursor-pointer reveal" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center">
+                <h4 class="text-lg font-bold text-white">Can you automate my manual lead process?</h4>
+                <span class="material-symbols-outlined faq-chevron transition-transform text-primary">expand_more</span>
+            </div>
+            <div class="faq-answer">
+                <p class="pt-4 text-gray-400 text-sm leading-relaxed">Absolutely. We use Python scripts and WhatsApp API to automatically route your website leads into a Google Sheet or your custom CRM.</p>
+            </div>
+        </div>
+    </div>
+  </section>
+
+  <div id="serviceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm modal">
+      <div class="relative w-full max-w-lg bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl modal-content m-4">
+          <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+          <div id="modalBody"></div>
+          <div class="mt-8 pt-6 border-t border-white/10 flex justify-end">
+              <a href="https://wa.me/917078524164" class="px-6 py-3 bg-primary text-dark font-bold rounded-lg hover:opacity-90 transition">Enquire Now</a>
+          </div>
+      </div>
+  </div>
+
+  <footer class="border-t border-white/5 bg-black py-12 text-center">
+      <div class="max-w-7xl mx-auto px-6">
+          <p class="text-white font-bold mb-2 uppercase tracking-tighter text-xl">Nixvra</p>
+          <p class="text-gray-500 text-sm mb-6">Unit of <strong>Wabcripte Web Solution Pvt Ltd</strong></p>
+          <div class="flex justify-center gap-6 mb-8 text-gray-500 text-xs uppercase tracking-widest">
+              <span>Indore</span><span>•</span><span>Bangalore</span><span>•</span><span>Remote</span>
+          </div>
+          <p class="text-gray-700 text-xs">© 2026 Wabcripte Web Solution Pvt Ltd. All Rights Reserved.</p>
+      </div>
+  </footer>
+
+  <script>
+    const serviceData = {
+        web: {
+            title: "Website Redesign",
+            icon: "code",
+            color: "text-primary",
+            desc: "Full-stack overhaul of legacy systems into modern, high-speed applications.",
+            list: ["Laravel/React integration", "100% Mobile Fluidity", "SEO Structure Optimization", "Image Compression & Caching"]
+        },
+        auto: {
+            title: "Business Automation",
+            icon: "smart_toy",
+            color: "text-purple-400",
+            desc: "Custom Python scripts to remove manual data entry and lead management hurdles.",
+            list: ["WhatsApp API Bot", "CRM Lead Syncing", "Auto-Email Drip Campaigns", "Inventory Alert Scripts"]
+        },
+        maint: {
+            title: "Maintenance & Security",
+            icon: "shield",
+            color: "text-blue-400",
+            desc: "Proactive server and code management to ensure 99.9% uptime.",
+            list: ["Daily Cloud Backups", "Firewall Configuration", "Speed Monitoring", "Monthly Performance Reports"]
+        }
+    };
+
+    const modal = document.getElementById('serviceModal');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(type) {
+        const data = serviceData[type];
+        modalBody.innerHTML = `
+            <div class="flex items-center gap-3 mb-4">
+                <span class="material-symbols-outlined ${data.color} text-3xl">${data.icon}</span>
+                <h3 class="text-2xl font-bold text-white">${data.title}</h3>
+            </div>
+            <p class="text-gray-400 mb-6 text-sm">${data.desc}</p>
+            <div class="bg-white/5 rounded-xl p-5 border border-white/5">
+                <ul class="space-y-3">
+                    ${data.list.map(item => `<li class="flex items-center gap-3 text-sm text-gray-300"><span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>${item}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        modal.classList.add('open');
+    }
+
+    function closeModal() { modal.classList.remove('open'); }
+    window.onclick = (e) => { if (e.target == modal) closeModal(); }
+
+    function toggleFaq(element) {
+        document.querySelectorAll('.faq-item').forEach(item => { if(item !== element) item.classList.remove('active'); });
+        element.classList.toggle('active');
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+    });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    const container = document.getElementById('tilt-container');
+    const card = document.getElementById('tilt-card');
+    if(container) {
+        container.onmousemove = (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = `perspective(1000px) rotateX(${y * -10}deg) rotateY(${x * 10}deg)`;
+        };
+        container.onmouseleave = () => { card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`; };
+    }
+  </script>
+</body>
+</html>
