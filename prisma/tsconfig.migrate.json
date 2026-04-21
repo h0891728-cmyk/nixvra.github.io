@@ -1,0 +1,5 @@
+{
+  "module": "CommonJS",
+  "esModuleInterop": true,
+  "allowSyntheticDefaultImports": true
+}

@@ -1,0 +1,161 @@
+// OMNICORE OS v3.0 - MASTER DATABASE SCHEMA
+// Used strictly for global Tenant management & Routing
+
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/master-client"
+}
+
+enum Industry {
+  REAL_ESTATE
+  EDUCATION
+  HEALTHCARE
+  ECOMMERCE
+  SERVICES
+  OTHER
+}
+
+enum SubscriptionPlan {
+  TRIAL
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum DomainType {
+  PRIMARY
+  ALIAS
+  REDIRECT
+}
+
+enum DomainStatus {
+  PENDING_APPROVAL
+  APPROVED
+  VERIFYING
+  ACTIVE
+  FAILED
+  REJECTED
+}
+
+enum DomainSource {
+  EXTERNAL   // User's own domain (any registrar)
+  NAMECOM    // Purchased via Name.com API
+}
+
+model Tenant {
+  id              String   @id @default(uuid()) @db.Char(36)
+  subdomain       String   @unique @db.VarChar(255)
+  name            String   @db.VarChar(255)
+  industry        Industry
+  modules         Json
+  services        Json?
+  landingPage     Json?
+
+  databaseName    String             @default("test") @db.VarChar(255)
+  isIsolated      Boolean            @default(true)
+
+  // ── Subscription ──────────────────────────────
+  plan            SubscriptionPlan   @default(TRIAL)
+  planStatus      SubscriptionStatus @default(TRIAL)
+  planAmount      Float              @default(0)
+  billingCycle    BillingCycle       @default(MONTHLY)
+  planStartDate   DateTime           @default(now())
+  planExpiryDate  DateTime?
+
+  // ── Locale ─────────────────────────────────────
+  currency        String             @default("INR") @db.Char(3)
+
+  // ── Branding (Public Landing Page) ────────────────────
+  logoUrl         String?            @db.Text
+  tagline         String?            @db.VarChar(500)
+  primaryColor    String             @default("#00B077") @db.VarChar(30)
+
+  // ── Relations ──────────────────────────────────
+  domains         TenantDomain[]
+  googleIntegration TenantGoogleIntegration?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("tenants")
+}
+
+model TenantDomain {
+  id              String       @id @default(uuid()) @db.Char(36)
+  tenantId        String       @db.Char(36)
+  domain          String       @unique @db.VarChar(255)
+  type            DomainType   @default(PRIMARY)
+  status          DomainStatus @default(PENDING_APPROVAL)
+
+  // DNS verification
+  verifyToken     String       @db.VarChar(255)   // TXT record value
+  dnsTarget       String       @default("cname.omnicore.app") @db.VarChar(255)
+
+  // Source tracking
+  source          DomainSource @default(EXTERNAL)
+  registrar       String?      @db.VarChar(100)    // e.g. "name.com", "godaddy"
+  autoConfigured  Boolean      @default(false)     // Name.com auto-DNS configured
+  vercelDomainId  String?      @db.VarChar(255)    // Vercel internal domain ref
+
+  // Name.com purchase info
+  namecomOrderId  String?      @db.VarChar(255)
+  purchasedAt     DateTime?
+  expiresAt       DateTime?                        // Domain registration expiry
+
+  // Lifecycle timestamps
+  verifiedAt      DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?      @db.Text
+
+  // SSL
+  sslStatus       String       @default("PENDING") @db.VarChar(50)
+
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("tenant_domains")
+}
+
+model TenantGoogleIntegration {
+  id              String    @id @default(uuid()) @db.Char(36)
+  tenantId        String    @unique @db.Char(36)
+
+  googleAccountId String    @unique @db.VarChar(255)
+  email           String    @db.VarChar(255)
+  
+  accessToken     String    @db.Text
+  refreshToken    String    @db.Text
+  tokenExpiry     DateTime?
+
+  // Controls whether Google Social Login is ALLOWED for this tenant's users.
+  // Connected but disabled = OAuth tokens stored but login is blocked.
+  loginEnabled    Boolean   @default(true)
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("tenant_google_integrations")
+}

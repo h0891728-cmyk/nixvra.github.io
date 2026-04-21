@@ -1,0 +1,641 @@
+// OMNICORE OS v3.0 - ISOLATED TENANT SCHEMA (TiDB OPTIMIZED)
+// This schema is compiled for individual tenant environments. 
+// No Row-Level tenant keys exist, providing absolute DB isolation.
+
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =============================================
+// ENUMS
+// =============================================
+enum UserRole {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum IntegrationProvider {
+  META_GRAPH
+  WHATSAPP_CLOUD
+  YOUTUBE_DATA
+  CANVA
+  RAZORPAY
+  STRIPE
+  PRACTO
+  NINETY_NINE_ACRES
+  GOOGLE_ANALYTICS
+  MAILCHIMP
+  ZAPIER
+  // ── Session 7: Master Integrations Panel ──
+  TWITTER
+  LINKEDIN
+  SMTP
+  GMAIL
+  IVRS
+}
+
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum AdObjective {
+  LEADS
+  TRAFFIC
+  CONVERSIONS
+  ENGAGEMENT
+  APP_INSTALLS
+}
+
+enum AdStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum WebhookSource {
+  WHATSAPP_CLOUD
+  META
+  NINETY_NINE_ACRES
+  YOUTUBE
+  STRIPE
+  RAZORPAY
+  CANVA
+  CUSTOM
+}
+
+enum WebhookEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum EntityType {
+  STUDENT
+  PATIENT
+  LEAD
+  AGENT
+  CUSTOMER
+  VENDOR
+  STAFF
+  TEACHER
+  PARENT
+  PROPERTY
+  GROUP
+  ASSET
+}
+
+enum TransactionStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentGateway {
+  RAZORPAY
+  STRIPE
+  PAYPAL
+  CASH
+  BANK_TRANSFER
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  BOOLEAN
+  SELECT
+  MULTI_SELECT
+  JSON
+}
+
+// =============================================
+// TENANT-ISOLATED TABLES 
+// =============================================
+
+model User {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  publicId     String    @unique @default(uuid()) @db.Char(36)
+
+  role         UserRole
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @db.VarChar(255)
+
+  // ── Email Verification ──────────────────────────────────────────────────
+  // emailVerified = true skips the verification gate on the dashboard.
+  // Auto-set to true when user connects Google (Google already verified the email).
+  emailVerified              Boolean   @default(false)
+  emailVerificationToken     String?   @unique @db.VarChar(255)
+  emailVerificationExpiry    DateTime?
+
+  // ── Google Identity Link ─────────────────────────────────────────────────
+  // When a user connects Google, their googleId and email are synced here.
+  googleId     String?   @unique @db.VarChar(255)
+
+  deletedAt    DateTime? @db.DateTime
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+  @@index([emailVerified])
+  @@map("users")
+}
+
+model TenantIntegration {
+  id            BigInt              @id @default(autoincrement()) @db.BigInt
+  publicId      String              @unique @default(uuid()) @db.Char(36)
+
+  provider      IntegrationProvider @unique
+  apiKey        String?             @db.VarChar(500)
+  accessToken   String?             @db.Text
+  refreshToken  String?             @db.Text
+  webhookUrl    String?             @db.VarChar(500)
+  metadata      Json?
+  isActive      Boolean             @default(true)
+
+  deletedAt     DateTime?           @db.DateTime
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("tenant_integrations")
+}
+
+model SocialPost {
+  id           BigInt            @id @default(autoincrement()) @db.BigInt
+  publicId     String            @unique @default(uuid()) @db.Char(36)
+
+  platforms    Json
+  mediaUrl     String            @db.Text
+  caption      String?           @db.Text
+  scheduledFor DateTime?
+  status       SocialPostStatus  @default(DRAFT)
+  metadata     Json?
+
+  deletedAt    DateTime?         @db.DateTime
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([status, scheduledFor])
+  @@map("social_posts")
+}
+
+model AdCampaign {
+  id             BigInt       @id @default(autoincrement()) @db.BigInt
+  publicId       String       @unique @default(uuid()) @db.Char(36)
+
+  metaCampaignId String?      @db.VarChar(100)
+  objective      AdObjective
+  budget         Float        @default(0)
+  status         AdStatus     @default(ACTIVE)
+  metrics        Json?
+
+  deletedAt      DateTime?    @db.DateTime
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status])
+  @@map("ad_campaigns")
+}
+
+model WebhookEvent {
+  id        BigInt               @id @default(autoincrement()) @db.BigInt
+  publicId  String               @unique @default(uuid()) @db.Char(36)
+
+  source    WebhookSource
+  payload   Json
+  status    WebhookEventStatus   @default(PENDING)
+
+  deletedAt DateTime?            @db.DateTime
+
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([status, createdAt]) 
+  @@map("webhook_events")
+}
+
+model BusinessEntity {
+  id        BigInt     @id @default(autoincrement()) @db.BigInt
+  publicId  String     @unique @default(uuid()) @db.Char(36)
+  
+  userId    String?    @unique @db.Char(36)
+
+  type      EntityType
+  name      String     @db.VarChar(500)
+  contact   String?    @db.VarChar(255)
+  
+  description String?  @db.Text
+  coreTrait   String?  @db.VarChar(255)
+  coreValue   Decimal? @db.Decimal(15, 2)
+
+  deletedAt DateTime?  @db.DateTime
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([type, id])
+  @@map("business_entities")
+}
+
+model CustomField {
+  id          BigInt          @id @default(autoincrement()) @db.BigInt
+  publicId    String          @unique @default(uuid()) @db.Char(36)
+
+  entityType  EntityType
+  name        String          @db.VarChar(255)
+  fieldType   CustomFieldType
+  isRequired  Boolean         @default(false)
+  options     Json?
+  metadata    Json?
+
+  deletedAt   DateTime?       @db.DateTime
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([entityType])
+  @@map("custom_fields")
+}
+
+model CustomFieldValue {
+  id            BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId      String   @unique @default(uuid()) @db.Char(36)
+
+  entityId      String   @db.Char(36)
+  customFieldId String   @db.Char(36)
+
+  value         String?  @db.Text
+
+  deletedAt     DateTime? @db.DateTime
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([entityId])
+  @@index([customFieldId])
+  @@map("custom_field_values")
+}
+
+model Product {
+  id        BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId  String   @unique @default(uuid()) @db.Char(36)
+
+  name      String   @db.VarChar(500)
+  sku       String?  @db.VarChar(100)
+  price     Float
+  type      String   @db.VarChar(50)
+  metadata  Json?
+
+  deletedAt DateTime? @db.DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  invoiceItems InvoiceItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id               BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId         String   @unique @default(uuid()) @db.Char(36)
+
+  businessEntityId String   @db.Char(36)
+  totalAmount      Float
+  status           String   @db.VarChar(50)
+
+  deletedAt        DateTime? @db.DateTime
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([businessEntityId])
+  @@map("orders")
+}
+
+model Invoice {
+  id               BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId         String   @unique @default(uuid()) @db.Char(36)
+
+  orderId          String?  @db.Char(36)
+  businessEntityId String   @db.Char(36)
+
+  amount           Float
+  status           TransactionStatus
+
+  // ── Session 8: Payroll & ERP Invoicing ──
+  invoiceNumber    String?  @unique @db.VarChar(100)
+  taxAmount        Float    @default(0)
+  pdfUrl           String?  @db.Text
+  dueDate          DateTime? @db.Date
+
+  deletedAt        DateTime? @db.DateTime
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([businessEntityId])
+  @@map("invoices")
+}
+
+model InventoryMovement {
+  id        BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId  String   @unique @default(uuid()) @db.Char(36)
+
+  productId String   @db.Char(36)
+  quantity  Float
+  type      String   @db.VarChar(20)   // IN, OUT, ADJUST
+
+  deletedAt DateTime? @db.DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("inventory_movements")
+}
+
+model Transaction {
+  id              BigInt             @id @default(autoincrement()) @db.BigInt
+  publicId        String             @unique @default(uuid()) @db.Char(36)
+
+  entityId        String             @db.Char(36)
+  amount          Float
+  status          TransactionStatus
+  paymentGateway  PaymentGateway
+
+  deletedAt       DateTime?          @db.DateTime
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@map("transactions")
+}
+
+model AuditLog {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  publicId    String    @unique @default(uuid()) @db.Char(36)
+  
+  userId      String?   @db.VarChar(100)
+  action      String    @db.VarChar(100)
+  entityType  String?   @db.VarChar(100)
+  entityId    String?   @db.VarChar(100)
+  details     Json?
+  
+  tenantId    String?   @db.VarChar(100) // Specifically tracking source if globally queried
+
+  createdAt   DateTime  @default(now())
+  
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model Task {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  publicId    String    @unique @default(uuid()) @db.Char(36)
+
+  title       String    @db.VarChar(500)
+  description String?   @db.Text
+  status      TaskStatus @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+
+  assigneeId  String?   @db.VarChar(100)
+  creatorId   String    @db.VarChar(100)
+
+  dueDate     DateTime? @db.DateTime
+  deletedAt   DateTime? @db.DateTime
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, assigneeId])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model AttendanceLog {
+  id         BigInt             @id @default(autoincrement()) @db.BigInt
+  publicId   String             @unique @default(uuid()) @db.Char(36)
+  
+  entityId   String             @db.Char(36)
+  markedById String?            @db.Char(36)
+  
+  date       DateTime           @db.Date
+  status     AttendanceStatus
+  notes      String?            @db.Text
+  
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([entityId, date])
+  @@map("attendance_logs")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  ON_LEAVE
+}
+
+model TimelineEvent {
+  id          BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId    String   @unique @default(uuid()) @db.Char(36)
+  entityId    String   @db.Char(36)
+  
+  title       String   @db.VarChar(500)
+  description String?  @db.Text
+  fileUrl     String?  @db.Text
+  fileMeta    String?  @db.VarChar(100)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([entityId, createdAt(sort: Desc)])
+  @@map("timeline_events")
+}
+
+model EntityRelation {
+  id             BigInt   @id @default(autoincrement()) @db.BigInt
+  publicId       String   @unique @default(uuid()) @db.Char(36)
+  
+  sourceEntityId String   @db.Char(36)
+  targetEntityId String   @db.Char(36)
+  relationType   String   @db.VarChar(100)
+  metadata       Json?
+  
+  createdAt      DateTime @default(now())
+
+  @@index([sourceEntityId])
+  @@index([targetEntityId])
+  @@map("entity_relations")
+}
+
+// =============================================
+// MODULE I: PAYROLL & FINANCIAL ERP (SESSION 8)
+// =============================================
+
+enum PayrollStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model PayrollRun {
+  id           BigInt        @id @default(autoincrement()) @db.BigInt
+  publicId     String        @unique @default(uuid()) @db.Char(36)
+  
+  month        Int
+  year         Int
+  totalAmount  Float
+  status       PayrollStatus @default(PENDING)
+  processedBy  String?       @db.VarChar(100)
+  metadata     Json?
+  
+  deletedAt    DateTime?     @db.DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([month, year])
+  @@map("payroll_runs")
+}
+
+model SalarySlip {
+  id               BigInt        @id @default(autoincrement()) @db.BigInt
+  publicId         String        @unique @default(uuid()) @db.Char(36)
+  
+  payrollRunId     String        @db.Char(36)
+  businessEntityId String        @db.Char(36)
+  
+  baseSalary       Float
+  allowances       Float         @default(0)
+  deductions       Float         @default(0)
+  netPay           Float
+  
+  status           TransactionStatus @default(PENDING)
+  pdfUrl           String?       @db.Text
+  metadata         Json?
+  
+  deletedAt        DateTime?     @db.DateTime
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([payrollRunId])
+  @@index([businessEntityId])
+  @@map("salary_slips")
+}
+
+model TaxConfiguration {
+  id           BigInt      @id @default(autoincrement()) @db.BigInt
+  publicId     String      @unique @default(uuid()) @db.Char(36)
+
+  taxType      String      @unique @db.VarChar(50) // TDS, GST, PF, PT
+  rate         Float
+  isActive     Boolean     @default(true)
+  metadata     Json?
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  @@map("tax_configurations")
+}
+
+// =============================================
+// MODULE J: SPENDING & ADVANCED INVOICING / ERP
+// =============================================
+
+model InvoiceItem {
+  id            BigInt    @id @default(autoincrement()) @db.BigInt
+  publicId      String    @unique @default(uuid()) @db.Char(36)
+  
+  invoiceId     String    @db.Char(36)
+  productId     String?   @db.Char(36) // Nullable if custom one-off item
+  
+  itemName      String    @db.VarChar(500)
+  quantity      Float
+  unitPrice     Float
+  taxAmount     Float     @default(0)
+  discount      Float     @default(0)
+  total         Float
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  product       Product?  @relation(fields: [productId], references: [publicId], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@map("invoice_items")
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model Expense {
+  id              BigInt         @id @default(autoincrement()) @db.BigInt
+  publicId        String         @unique @default(uuid()) @db.Char(36)
+  
+  vendorEntityId  String?        @db.Char(36) // Link to BusinessEntity (VENDOR)
+  categoryId      String?        @db.Char(36) 
+  
+  amount          Float
+  currency        String         @default("INR") @db.Char(3)
+  dateOfExpense   DateTime       @db.Date
+  description     String         @db.Text
+  receiptUrl      String?        @db.Text
+  
+  status          ExpenseStatus  @default(DRAFT)
+  approvedBy      String?        @db.VarChar(100)
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@index([vendorEntityId])
+  @@index([status])
+  @@map("expenses")
+}
+
+model ExpenseCategory {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  publicId    String    @unique @default(uuid()) @db.Char(36)
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  @@map("expense_categories")
+}
