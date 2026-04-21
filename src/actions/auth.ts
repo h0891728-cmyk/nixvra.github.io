@@ -147,7 +147,7 @@ export async function impersonateEntityAction(tenantId: string, entityId: string
 
   if (!entity) throw new Error('Entity not found')
 
-  let targetUserId = entity.userId
+  const targetUserId = entity.userId
   let targetUser: any = null
 
   if (targetUserId) {

@@ -96,7 +96,7 @@ export async function publishSocialPost(tenantId: string, publicId: string) {
   const meta = (integration?.metadata as any) || {}
   const pages: any[] = meta.pages || []
 
-  let newMeta: any = { ...(existing.metadata as any || {}) }
+  const newMeta: any = { ...(existing.metadata as any || {}) }
   let newStatus: string = 'PUBLISHED'
   const platforms = Array.isArray(existing.platforms) ? existing.platforms : []
 

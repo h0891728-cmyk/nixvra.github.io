@@ -270,7 +270,7 @@ export async function getYouTubeVideos(tenantId: string, maxResults = 20) {
     const videoIds = (data.items || []).map((v: any) => v.id?.videoId).filter(Boolean)
 
     // Get statistics for those videos
-    let statsMap: Record<string, any> = {}
+    const statsMap: Record<string, any> = {}
     if (videoIds.length > 0) {
       try {
         const statsRes = await fetch(

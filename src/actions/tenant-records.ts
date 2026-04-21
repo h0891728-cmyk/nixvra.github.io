@@ -181,7 +181,7 @@ export async function importRecordsBulkAction(parsedData: any[]) {
   const validTypes = ['STUDENT', 'PATIENT', 'LEAD', 'AGENT', 'CUSTOMER', 'VENDOR', 'STAFF', 'TEACHER', 'PARENT', 'PROPERTY', 'GROUP', 'ASSET']
 
   let successCount = 0
-  let failedRows: any[] = []
+  const failedRows: any[] = []
 
   // We process in a single transaction for atomicity, OR use createMany for speed
   // Given we want to report errors per row, a loop or chunked createMany with validation is better

@@ -1,5 +1,6 @@
 import { masterDb, getTenantDb } from '@/lib/db'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import TenantSelector from '../_components/TenantSelector'
 import IntegrationsManagerClient from './_components/IntegrationsManagerClient'
 import { GoogleModuleTable } from '@/components/integrations/GoogleModuleTable'
@@ -134,7 +135,7 @@ export default async function GlobalIntegrationsPage({
         
         {/* Master Panel Link + Tenant Selector */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <a
+          <Link
             href="/super-admin/integrations/master"
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
@@ -145,7 +146,7 @@ export default async function GlobalIntegrationsPage({
           >
             <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>hub</span>
             Master Panel
-          </a>
+          </Link>
           <TenantSelector tenants={tenants} defaultValue={tenantId} />
         </div>
       </header>

@@ -22,7 +22,7 @@ export default function WhatsAppBulkUpload() {
         const headers = lines[0].split(',').map(h => h.trim());
         const data = lines.slice(1, 4).map(l => {
           const vals = l.split(',');
-          let obj: any = {};
+          const obj: any = {};
           headers.forEach((h, i) => obj[h] = vals[i] || '');
           return obj;
         });

@@ -1,8 +1,14 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { type NextAuthOptions, type Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
 import { createSession, decrypt } from "@/lib/session";
 import { masterDb, getTenantDb } from "@/lib/db";
+
+type SessionWithGoogleTokens = Session & {
+  accessToken?: string;
+  refreshToken?: string;
+  googleAccountId?: string;
+};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -196,13 +202,11 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // @ts-ignore
-      session.accessToken = token.accessToken as string;
-      // @ts-ignore
-      session.refreshToken = token.refreshToken as string;
-      // @ts-ignore
-      session.googleAccountId = token.googleAccountId as string;
-      return session;
+      const sessionWithTokens = session as SessionWithGoogleTokens;
+      sessionWithTokens.accessToken = token.accessToken as string | undefined;
+      sessionWithTokens.refreshToken = token.refreshToken as string | undefined;
+      sessionWithTokens.googleAccountId = token.googleAccountId as string | undefined;
+      return sessionWithTokens;
     },
   },
   session: { strategy: "jwt" },

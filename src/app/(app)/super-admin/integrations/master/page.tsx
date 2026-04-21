@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { masterDb } from '@/lib/db'
@@ -44,7 +45,7 @@ export default async function MasterIntegrationsPage() {
         </div>
 
         {/* Link back to legacy hub */}
-        <a
+        <Link
           href="/super-admin/integrations"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
@@ -56,7 +57,7 @@ export default async function MasterIntegrationsPage() {
         >
           <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>arrow_back</span>
           Integration Hub
-        </a>
+        </Link>
       </header>
 
       <div className="os-content">
